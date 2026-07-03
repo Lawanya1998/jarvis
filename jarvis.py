@@ -25,7 +25,7 @@ DATA_FILE = "data.json"  # For dashboard
 
 # Initialize text-to-speech engine
 engine = pyttsx3.init()
-engine.setProperty('rate', 170)
+engine.setProperty('rate', 180)
 
 
 def speak(text):
