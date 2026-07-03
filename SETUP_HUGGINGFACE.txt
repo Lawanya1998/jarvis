@@ -1,0 +1,112 @@
+JARVIS LOCAL SETUP - WINDOWS (WITH HUGGING FACE)
+=================================================
+
+COMPLETELY FREE ✅ NO CREDIT CARD NEEDED
+
+STEP 1: INSTALL PYTHON
+======================
+1. Download Python 3.11+ from https://www.python.org/downloads/
+2. During installation, CHECK "Add Python to PATH"
+3. Open Command Prompt and verify: python --version
+
+STEP 2: GET YOUR HUGGING FACE API KEY (COMPLETELY FREE!)
+=========================================================
+1. Go to https://huggingface.co
+2. Click "Sign Up" (just need email)
+3. Verify your email
+4. Go to your Profile → Settings → Access Tokens
+5. Click "New token"
+6. Name it "Jarvis"
+7. Copy the token
+8. In Command Prompt, run:
+   setx HUGGINGFACE_API_KEY "your-token-here"
+   (Replace your-token-here with your actual token)
+9. Close and reopen Command Prompt
+
+STEP 3: INSTALL DEPENDENCIES
+=============================
+1. Open Command Prompt in your Jarvis folder
+2. Run: pip install -r requirements.txt
+
+STEP 4: SET UP GOOGLE OAUTH
+============================
+1. Go to https://console.cloud.google.com
+2. Click "Create Project" → name it "Jarvis"
+3. Search for "Gmail API" → Enable it
+4. Search for "Google Calendar API" → Enable it
+5. Go to "Credentials" → Click "Create Credentials" → "OAuth 2.0 Client ID"
+6. Choose "Desktop application"
+7. Click Download (should be credentials.json)
+8. Move credentials.json to your Jarvis folder
+
+STEP 5: RUN JARVIS FOR THE FIRST TIME
+======================================
+1. Open Command Prompt in your Jarvis folder
+2. Run: python jarvis.py
+3. A browser window will open asking you to log in to Google
+4. Grant Jarvis access to Gmail and Calendar
+5. First run might take 30 seconds (loading model)
+6. You'll see your morning brief!
+
+STEP 6: SCHEDULE JARVIS TO RUN AUTOMATICALLY
+==============================================
+1. Create a file named "run_jarvis.bat" with this content:
+   
+   @echo off
+   cd /d "C:\path\to\your\jarvis\folder"
+   python jarvis.py
+
+2. Replace "C:\path\to\your\jarvis\folder" with your actual folder path
+
+3. Open Task Scheduler (search for it in Start Menu)
+4. Click "Create Basic Task"
+5. Name it: "Jarvis Morning Brief"
+6. Trigger: "Daily" → Set time to 6:30 AM
+7. Action: "Start a program" → Browse to your run_jarvis.bat
+8. Click Finish
+
+THAT'S IT!
+==========
+Jarvis will now run every morning at 6:30 AM completely free.
+
+CUSTOMIZING YOUR MEMORY
+=======================
+Edit jarvis_memory.json to tell Jarvis about yourself:
+{
+  "priorities": ["Finish Q3 report", "Review team performance"],
+  "projects": ["Project Alpha", "Website redesign"],
+  "notes": "I prefer morning meetings. I'm working on time management."
+}
+
+HUGGING FACE TIPS
+=================
+- First run takes 30 seconds to load the model
+- Free tier has rate limits (perfect for 1-2 briefs per day)
+- You can change the model in jarvis.py HUGGINGFACE_MODEL line
+- No credit card ever needed
+
+TROUBLESHOOTING
+===============
+- "ModuleNotFoundError": Run pip install -r requirements.txt
+- "Token not found": Delete token.pickle and re-run jarvis.py
+- "API key error": Make sure HUGGINGFACE_API_KEY is set correctly
+- "Model not found": Check your token is active on huggingface.co
+- "Rate limited": Wait a few seconds and try again
+- "Nothing happening": Check Task Scheduler is enabled
+
+AVAILABLE MODELS (Can change these)
+===================================
+- mistralai/Mistral-7B-Instruct-v0.1 (current - fast)
+- meta-llama/Llama-2-7b-chat-hf (slower but good)
+- gpt2 (very fast, less capable)
+
+To use a different model, edit jarvis.py and change:
+HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/MODEL_NAME"
+
+NEXT STEPS
+==========
+Once this works, we can add:
+- Email actions
+- Calendar events
+- Custom reminders
+- And much more!

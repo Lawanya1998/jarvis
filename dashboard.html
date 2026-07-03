@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: 'Segoe UI', sans-serif;
+            background: radial-gradient(ellipse at center, #0a0e27 0%, #050812 100%);
+            color: #00d4ff;
+            height: 100vh;
+            overflow: hidden;
+        }
+        #container { 
+            width: 100%; 
+            height: 100vh; 
+            position: relative; 
+        }
+        #canvas { display: block; width: 100%; height: 100%; }
+        #overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+        }
+        #top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 24px 32px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.2);
+        }
+        #title {
+            font-size: 28px;
+            font-weight: 300;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
+        }
+        .status { 
+            font-size: 11px; 
+            letter-spacing: 2px; 
+            text-transform: uppercase; 
+        }
+        .status-indicator { 
+            display: inline-block; 
+            width: 6px; 
+            height: 6px; 
+            background: #00ff88; 
+            border-radius: 50%; 
+            margin-right: 8px; 
+            animation: pulse 2s infinite; 
+            box-shadow: 0 0 8px #00ff88;
+        }
+        @keyframes pulse { 
+            0%, 100% { opacity: 1; box-shadow: 0 0 8px #00ff88; } 
+            50% { opacity: 0.4; box-shadow: 0 0 4px #00ff88; } 
+        }
+        #content {
+            flex: 1;
+            display: flex;
+            gap: 32px;
+            padding: 0 32px 32px;
+            align-items: flex-end;
+            pointer-events: auto;
+        }
+        .panel {
+            background: rgba(0, 20, 50, 0.5);
+            border: 1px solid rgba(0, 212, 255, 0.3);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            flex: 0 0 auto;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .panel::-webkit-scrollbar {
+            width: 4px;
+        }
+        .panel::-webkit-scrollbar-track {
+            background: rgba(0, 212, 255, 0.1);
+        }
+        .panel::-webkit-scrollbar-thumb {
+            background: rgba(0, 212, 255, 0.3);
+            border-radius: 2px;
+        }
+        .panel-title {
+            font-size: 12px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #00ff88;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
+        .panel-content {
+            font-size: 13px;
+            line-height: 1.8;
+            color: #00d4ff;
+        }
+        .item {
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+        }
+        .item:last-child { 
+            border-bottom: none; 
+            margin-bottom: 0; 
+            padding-bottom: 0; 
+        }
+        .item-label { 
+            font-size: 11px; 
+            color: #0088cc; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+        }
+        .item-value { 
+            font-size: 13px; 
+            color: #00ff88; 
+            font-weight: 500; 
+            margin-top: 4px; 
+            word-break: break-word;
+        }
+        #emails-panel { max-width: 320px; }
+        #priorities-panel { max-width: 240px; }
+        #grid-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40%;
+            background: linear-gradient(180deg, transparent 0%, rgba(0, 212, 255, 0.03) 100%);
+            pointer-events: none;
+            background-image: 
+                linear-gradient(0deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.05) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+        #timestamp {
+            position: absolute;
+            bottom: 20px;
+            right: 32px;
+            font-size: 11px;
+            color: #0088cc;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <canvas id="canvas"></canvas>
+        
+        <div id="overlay">
+            <div id="top-bar">
+                <div id="title">JARVIS</div>
+                <div class="status">
+                    <span class="status-indicator"></span>ONLINE
+                </div>
+            </div>
+            
+            <div id="content">
+                <div class="panel" id="emails-panel">
+                    <div class="panel-title">📧 Inbox</div>
+                    <div class="panel-content" id="emails-list">
+                        <div class="item">
+                            <div class="item-label">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel" id="priorities-panel">
+                    <div class="panel-title">⚡ Priorities</div>
+                    <div class="panel-content" id="priorities-list">
+                        <div class="item">
+                            <div class="item-label">Loading...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="grid-overlay"></div>
+        <div id="timestamp"></div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Three.js setup
+        const container = document.getElementById('container');
+        const scene = new THREE.Scene();
+        const canvas = document.getElementById('canvas');
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setClearColor(0x000000, 0);
+        camera.position.z = 40;
+
+        // Main holographic core
+        const coreGeo = new THREE.IcosahedronGeometry(4, 5);
+        const coreMat = new THREE.MeshPhongMaterial({
+            color: 0x0088cc,
+            emissive: 0x004488,
+            wireframe: false,
+            transparent: true,
+            opacity: 0.7,
+            shininess: 100
+        });
+        const core = new THREE.Mesh(coreGeo, coreMat);
+        scene.add(core);
+
+        // Wireframe overlay
+        const wireGeo = new THREE.IcosahedronGeometry(4.2, 5);
+        const wireMat = new THREE.MeshBasicMaterial({
+            color: 0x00d4ff,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.4
+        });
+        const wireframe = new THREE.Mesh(wireGeo, wireMat);
+        scene.add(wireframe);
+
+        // Create rings
+        function createRing(radius, color, speed) {
+            const points = [];
+            for (let i = 0; i <= 128; i++) {
+                const angle = (i / 128) * Math.PI * 2;
+                points.push(Math.cos(angle) * radius, Math.sin(angle) * radius, 0);
+            }
+            const geo = new THREE.BufferGeometry();
+            geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(points), 3));
+            const mat = new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.6, linewidth: 1 });
+            const ring = new THREE.Line(geo, mat);
+            ring.userData.speed = speed;
+            return ring;
+        }
+
+        const ring1 = createRing(10, 0x00d4ff, 0.003);
+        const ring2 = createRing(12, 0x00ff88, 0.002);
+        ring2.rotation.x = Math.PI / 3;
+        const ring3 = createRing(14, 0x0088cc, 0.004);
+        ring3.rotation.y = Math.PI / 4;
+
+        scene.add(ring1, ring2, ring3);
+
+        // Floating particles
+        const particles = [];
+        for (let i = 0; i < 20; i++) {
+            const geo = new THREE.OctahedronGeometry(0.4, 0);
+            const colors = [0x00d4ff, 0x00ff88, 0x0088cc];
+            const mat = new THREE.MeshBasicMaterial({ 
+                color: colors[i % 3],
+                transparent: true,
+                opacity: 0.8
+            });
+            const particle = new THREE.Mesh(geo, mat);
+            
+            const theta = Math.random() * Math.PI * 2;
+            const phi = Math.random() * Math.PI;
+            const r = 16 + Math.random() * 8;
+            
+            particle.position.x = Math.sin(phi) * Math.cos(theta) * r;
+            particle.position.y = Math.sin(phi) * Math.sin(theta) * r;
+            particle.position.z = Math.cos(phi) * r;
+            
+            particle.userData = {
+                theta, phi, r,
+                thetaSpeed: 0.001 + Math.random() * 0.003,
+                phiSpeed: 0.0005 + Math.random() * 0.002
+            };
+            
+            scene.add(particle);
+            particles.push(particle);
+        }
+
+        // Lighting
+        const light1 = new THREE.PointLight(0x00d4ff, 1.2, 150);
+        light1.position.set(20, 20, 30);
+        scene.add(light1);
+
+        const light2 = new THREE.PointLight(0x00ff88, 0.8, 120);
+        light2.position.set(-20, -20, 20);
+        scene.add(light2);
+
+        const ambientLight = new THREE.AmbientLight(0x003366, 0.4);
+        scene.add(ambientLight);
+
+        // Animation loop
+        let time = 0;
+        function animate() {
+            requestAnimationFrame(animate);
+            time += 0.01;
+            
+            core.rotation.x += 0.0005;
+            core.rotation.y += 0.0008;
+            wireframe.rotation.x -= 0.0008;
+            wireframe.rotation.y -= 0.0005;
+            
+            ring1.rotation.z += ring1.userData.speed;
+            ring2.rotation.x += ring2.userData.speed * 0.7;
+            ring3.rotation.y += ring3.userData.speed;
+            
+            particles.forEach(particle => {
+                const data = particle.userData;
+                data.theta += data.thetaSpeed;
+                data.phi += data.phiSpeed;
+                
+                const sinPhi = Math.sin(data.phi);
+                particle.position.x = Math.cos(data.theta) * sinPhi * data.r;
+                particle.position.y = Math.sin(data.theta) * sinPhi * data.r;
+                particle.position.z = Math.cos(data.phi) * data.r;
+                
+                particle.rotation.x += 0.01;
+                particle.rotation.y += 0.015;
+            });
+            
+            renderer.render(scene, camera);
+        }
+
+        animate();
+
+        // Load data from JSON
+        async function loadData() {
+            try {
+                const response = await fetch('data.json');
+                const data = await response.json();
+                
+                // Update timestamp
+                const date = new Date(data.timestamp);
+                document.getElementById('timestamp').textContent = date.toLocaleString();
+                
+                // Update emails
+                let emailsHTML = '';
+                if (data.emails && data.emails.length > 0) {
+                    data.emails.forEach((email, i) => {
+                        const sender = email.from.split('<')[0].trim();
+                        emailsHTML += `
+                            <div class="item">
+                                <div class="item-label">From: ${sender}</div>
+                                <div class="item-value">${email.subject}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    emailsHTML = '<div class="item"><div class="item-label">No emails</div></div>';
+                }
+                document.getElementById('emails-list').innerHTML = emailsHTML;
+                
+                // Update priorities
+                let prioritiesHTML = '';
+                if (data.priorities && data.priorities.length > 0) {
+                    data.priorities.forEach(priority => {
+                        prioritiesHTML += `
+                            <div class="item">
+                                <div class="item-label">Task</div>
+                                <div class="item-value">${priority}</div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    prioritiesHTML = '<div class="item"><div class="item-label">No priorities set</div></div>';
+                }
+                document.getElementById('priorities-list').innerHTML = prioritiesHTML;
+                
+            } catch (error) {
+                console.log('Data file not ready yet. Run jarvis.py first!');
+                document.getElementById('emails-list').innerHTML = '<div class="item"><div class="item-label">Run jarvis.py to load data</div></div>';
+                document.getElementById('priorities-list').innerHTML = '<div class="item"><div class="item-label">Waiting for data...</div></div>';
+            }
+        }
+
+        // Load data and refresh every 5 seconds
+        loadData();
+        setInterval(loadData, 5000);
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+    </script>
+</body>
+</html>

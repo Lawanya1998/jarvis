@@ -1,0 +1,7 @@
+.env
+.venv/
+credentials.json
+token.pickle
+__pycache__/
+data.json
+jarvis_brief.txt
