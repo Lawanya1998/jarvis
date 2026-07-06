@@ -20,6 +20,9 @@ load_dotenv()
 GMAIL_EMAIL = os.environ.get("GMAIL_EMAIL")
 GMAIL_PASSWORD = os.environ.get("GMAIL_PASSWORD")
 
+print(f"DEBUG - EMAIL: {GMAIL_EMAIL}")
+print(f"DEBUG - PASSWORD: {GMAIL_PASSWORD}")
+
 MEMORY_FILE = "jarvis_memory.json"
 DATA_FILE = "data.json"  # For dashboard
 
