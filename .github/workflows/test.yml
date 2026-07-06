@@ -8,6 +8,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
+      - name: Install system dependencies
+        run: sudo apt-get install -y libespeak1
+      
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
